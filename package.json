@@ -48,7 +48,7 @@
     "not op_mini all"
   ],
   "peerDependencies": {
-    "@reduxjs/toolkit/query": ">=1.0.3",
+    "@reduxjs/toolkit": ">=1.0.3",
     "fp-ts": ">=2.0.0",
     "react": ">=16.8.0",
     "react-redux": ">=^7.2.1"
