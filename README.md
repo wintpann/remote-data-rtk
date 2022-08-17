@@ -296,3 +296,6 @@ export type RenderRemoteRTKProps<E, A> = {
 
 ### 0.0.1 `17.08.2022`
 * Initial release
+
+### 0.0.2 `17.08.2022`
+* Removed useless dependency

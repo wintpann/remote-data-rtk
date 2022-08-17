@@ -50,8 +50,7 @@
   "peerDependencies": {
     "@reduxjs/toolkit": ">=1.0.3",
     "fp-ts": ">=2.0.0",
-    "react": ">=16.8.0",
-    "react-redux": ">=^7.2.1"
+    "react": ">=16.8.0"
   },
   "devDependencies": {
     "@reduxjs/toolkit": "^1.8.2",
@@ -85,6 +84,7 @@
     "react": "^18.2.0",
     "react-app-rewired": "^2.2.1",
     "react-dom": "^18.2.0",
+    "react-redux": "^8.0.2",
     "react-scripts": "^5.0.1",
     "rimraf": "^3.0.2",
     "rollup": "^2.77.0",
@@ -100,7 +100,5 @@
       "prettier --write --ignore-unknown"
     ]
   },
-  "dependencies": {
-    "react-redux": "^8.0.2"
-  }
+  "dependencies": {}
 }
