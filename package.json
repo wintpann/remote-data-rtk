@@ -1,6 +1,6 @@
 {
   "name": "remote-data-rtk",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "ADT for @reduxjs/toolkit/query",
   "author": "wintpann",
   "keywords": [
