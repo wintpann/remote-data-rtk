@@ -12,6 +12,38 @@
 
 * [Slaying a UI Antipattern with Flow](https://medium.com/@gcanti/slaying-a-ui-antipattern-with-flow-5eed0cfb627b)
 
+## Usage example from this repo
+> Go to `src/dev/demo/index.tsx` for comparison with classic approach
+```typescript jsx
+export const WithRemoteRTKDemoCombined2Queries: FC = () => {
+  const users: RemoteRTK<RTKError, APIUser[]> = api.useGetUsersQuery();
+  const todos: RemoteRTK<RTKError, APITodo[]> = api.useGetTodosQuery();
+
+  const data = pipe(
+    remoteRTK.sequenceS({ users, todos }),
+    remoteRTK.map(({ users, todos }) => ({
+      users: users.map((user) => ({
+        ...user,
+        fullName: user.name + user.username,
+      })),
+      todos,
+    })),
+  );
+
+  return (
+    <div className="remote">
+      <RenderRemoteRTK
+        data={data}
+        success={(data) => <UsersWithTodosComponent users={data.users} todos={data.todos} />}
+        initial={<div>INITIAL</div>}
+        failure={() => <div>ERROR</div>}
+        pending={<div>SKELETON</div>}
+      />
+    </div>
+  );
+};
+```
+
 ## API
 
 ### remoteRTK.initial
