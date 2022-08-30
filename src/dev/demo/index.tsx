@@ -2,7 +2,7 @@ import React, { FC, PropsWithChildren } from 'react';
 import { pipe } from 'fp-ts/function';
 import { createApi, fetchBaseQuery, ApiProvider } from '@reduxjs/toolkit/query/react';
 import { useDispatch } from 'react-redux';
-import { remoteRTK, RemoteRTK, RTKError, RenderRemoteRTK } from '../../core';
+import { remote, RemoteData, RemoteError, RenderRemote } from '../../core';
 import './styles.scss';
 import { useButtonControl } from 'storybox-react';
 
@@ -138,18 +138,18 @@ export const WithPlainRTKDemoCombined2Queries: FC = () => {
 export const WithRemoteRTKDemoSimple: FC = () => {
   useInvalidateAllQueriesControl();
 
-  const users: RemoteRTK<RTKError, APIUser[]> = api.useGetUsersQuery();
+  const users: RemoteData<RemoteError, APIUser[]> = api.useGetUsersQuery();
 
   const usersList = pipe(
     users,
-    remoteRTK.map((users) =>
+    remote.map((users) =>
       users.map((user) => ({ ...user, fullName: user.name + user.username })),
     ),
   );
 
   return (
     <div className="remote">
-      <RenderRemoteRTK
+      <RenderRemote
         data={usersList}
         success={(users) => users.map((user) => <UserComponent {...user} key={user.id} />)}
         initial={<div>INITIAL</div>}
@@ -163,12 +163,12 @@ export const WithRemoteRTKDemoSimple: FC = () => {
 export const WithRemoteRTKDemoCombined2Queries: FC = () => {
   useInvalidateAllQueriesControl();
 
-  const users: RemoteRTK<RTKError, APIUser[]> = api.useGetUsersQuery();
-  const todos: RemoteRTK<RTKError, APITodo[]> = api.useGetTodosQuery();
+  const users: RemoteData<RemoteError, APIUser[]> = api.useGetUsersQuery();
+  const todos: RemoteData<RemoteError, APITodo[]> = api.useGetTodosQuery();
 
   const data = pipe(
-    remoteRTK.sequenceS({ users, todos }),
-    remoteRTK.map(({ users, todos }) => ({
+    remote.sequenceS({ users, todos }),
+    remote.map(({ users, todos }) => ({
       users: users.map((user) => ({
         ...user,
         fullName: user.name + user.username,
@@ -179,7 +179,7 @@ export const WithRemoteRTKDemoCombined2Queries: FC = () => {
 
   return (
     <div className="remote">
-      <RenderRemoteRTK
+      <RenderRemote
         data={data}
         success={(data) => <UsersWithTodosComponent users={data.users} todos={data.todos} />}
         initial={<div>INITIAL</div>}

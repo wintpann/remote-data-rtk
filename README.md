@@ -16,12 +16,12 @@
 > Go to `src/dev/demo/index.tsx` for comparison with classic approach
 ```typescript jsx
 export const WithRemoteRTKDemoCombined2Queries: FC = () => {
-  const users: RemoteRTK<RTKError, APIUser[]> = api.useGetUsersQuery();
-  const todos: RemoteRTK<RTKError, APITodo[]> = api.useGetTodosQuery();
+  const users: RemoteData<RemoteError, APIUser[]> = api.useGetUsersQuery();
+  const todos: RemoteData<RemoteError, APITodo[]> = api.useGetTodosQuery();
 
   const data = pipe(
-    remoteRTK.sequenceS({ users, todos }),
-    remoteRTK.map(({ users, todos }) => ({
+    remote.sequenceS({ users, todos }),
+    remote.map(({ users, todos }) => ({
       users: users.map((user) => ({
         ...user,
         fullName: user.name + user.username,
@@ -32,7 +32,7 @@ export const WithRemoteRTKDemoCombined2Queries: FC = () => {
 
   return (
     <div className="remote">
-      <RenderRemoteRTK
+      <RenderRemote
         data={data}
         success={(data) => <UsersWithTodosComponent users={data.users} todos={data.todos} />}
         initial={<div>INITIAL</div>}
@@ -46,105 +46,105 @@ export const WithRemoteRTKDemoCombined2Queries: FC = () => {
 
 ## API
 
-### remoteRTK.initial
+### remote.initial
 ```typescript
-import { remoteRTK, RTKError } from 'remote-data-rtk';
+import { remote, RemoteError } from 'remote-data-rtk';
 
 type User = { name: string; age: number };
 
-const initialUsers: RemoteRTK<RTKError, User[]> = remoteRTK.initial;
+const initialUsers: RemoteData<RemoteError, User[]> = remote.initial;
 ```
 
-### remoteRTK.pending
+### remote.pending
 ```typescript
-import { remoteRTK, RTKError } from 'remote-data-rtk';
+import { remote, RemoteError } from 'remote-data-rtk';
 
 type User = { name: string; age: number };
 
-const pendingUsersWithData: RemoteRTK<RTKError, User[]> = remoteRTK.pending([{name: "John", age: 20}]);
+const pendingUsersWithData: RemoteData<RemoteError, User[]> = remote.pending([{name: "John", age: 20}]);
 
-const pendingUsers: RemoteRTK<RTKError, User[]> = remoteRTK.pending();
+const pendingUsers: RemoteData<RemoteError, User[]> = remote.pending();
 ```
 
-### remoteRTK.failure
+### remote.failure
 ```typescript
-import { remoteRTK, RTKError } from 'remote-data-rtk';
+import { remote, RemoteError } from 'remote-data-rtk';
 
 type User = { name: string; age: number };
 
-const failureUsers: RemoteRTK<RTKError, User[]> = remoteRTK.failure(new Error('failed to fetch'));
+const failureUsers: RemoteData<RemoteError, User[]> = remote.failure(new Error('failed to fetch'));
 // left part can be whatever you need
-const failureUsersCustomError: RemoteRTK<{reason: string}, User[]> = remoteRTK.failure({reason: 'failed to fetch'});
+const failureUsersCustomError: RemoteData<{reason: string}, User[]> = remote.failure({reason: 'failed to fetch'});
 ```
 
-### remoteRTK.success
+### remote.success
 ```typescript
-import { remoteRTK, RTKError } from 'remote-data-rtk';
+import { remote, RemoteError } from 'remote-data-rtk';
 
 type User = { name: string; age: number };
 
-const successUsers: RemoteRTK<RTKError, User[]> = remoteRTK.success([{name: "John", age: 20}])
+const successUsers: RemoteData<RemoteError, User[]> = remote.success([{name: "John", age: 20}])
 ```
 
-### remoteRTK.isInitial
+### remote.isInitial
 ```typescript
-import { remoteRTK } from 'remote-data-rtk';
+import { remote } from 'remote-data-rtk';
 
-remoteRTK.isInitial(remoteRTK.initial) // true
-remoteRTK.isInitial(remoteRTK.pending()) // false
+remote.isInitial(remote.initial) // true
+remote.isInitial(remote.pending()) // false
 ```
 
-### remoteRTK.isPending
+### remote.isPending
 ```typescript
 
-import { remoteRTK } from 'remote-data-rtk';
+import { remote } from 'remote-data-rtk';
 
-remoteRTK.isPending(remoteRTK.pending()) // true
-remoteRTK.isPending(remoteRTK.failure(new Error())) // false
+remote.isPending(remote.pending()) // true
+remote.isPending(remote.failure(new Error())) // false
 ```
 
-### remoteRTK.isFailure
+### remote.isFailure
 ```typescript
-import { remoteRTK } from 'remote-data-rtk';
+import { remote } from 'remote-data-rtk';
 
-remoteRTK.isFailure(remoteRTK.failure(new Error())) // true
-remoteRTK.isFailure(remoteRTK.success([])) // false
+remote.isFailure(remote.failure(new Error())) // true
+remote.isFailure(remote.success([])) // false
 ```
 
-### remoteRTK.isSuccess
+### remote.isSuccess
 ```typescript
-import { remoteRTK } from 'remote-data-rtk';
+import { remote } from 'remote-data-rtk';
 
-remoteRTK.isSuccess(remoteRTK.success([])) // true
-remoteRTK.isSuccess(remoteRTK.pending([])) // false
+remote.isSuccess(remote.success([])) // true
+remote.isSuccess(remote.pending([])) // false
 ```
 
-### remoteRTK.map
+### remote.map
 ```typescript
-import { remoteRTK, RTKError } from 'remote-data-rtk';
+import { remote, RemoteError } from 'remote-data-rtk';
 import { pipe } from 'fp-ts/function';
 
 type User = { name: string; age: number };
 type UserInfo = string; // name + age
 
-const remoteUser: RemoteRTK<RTKError, User> = remoteRTK.success({name: "John", age: 20})
-const remoteUserName: RemoteRTK<RTKError, UserInfo> = pipe(remoteUser, remoteRTK.map(user => `${user.name} ${user.age}`))
+const remoteUser: RemoteData<RemoteError, User> = remote.success({name: "John", age: 20})
+const remoteUserName: RemoteData<RemoteError, UserInfo> = pipe(remoteUser, remote.map(user => `${user.name} ${user.age}`))
 ```
 
-### remoteRTK.fold
+### remote.fold
 ```typescript
-import { remoteRTK, RTKError } from 'remote-data-rtk';
+import { remote, RemoteError } from 'remote-data-rtk';
 import { pipe, identity } from 'fp-ts/function';
 import { option } from 'fp-ts';
 
 type User = { name: string; age: number };
 
-const remoteUser: RemoteRTK<RTKError, User> = remoteRTK.success({name: "John", age: 20})
+const remoteUser: RemoteData<RemoteError, User> = remote.success({name: "John", age: 20})
 
 const user: string = pipe(
     remoteUser,
-    remoteRTK.map(user => `${user.name} ${user.age}`),
-    remoteRTK.fold(
+    remote.map(user => `${user.name} ${user.age}`),
+    remote.fold(
         () => 'nothing is fetched',
         option.fold(() => 'just pending', (userInfo) => `info: ${userInfo}. pending again for some reason`),
         String,
@@ -153,36 +153,36 @@ const user: string = pipe(
 )
 ```
 
-### remoteRTK.getOrElse
+### remote.getOrElse
 ```typescript
-import { remoteRTK, RTKError } from 'remote-data-rtk';
+import { remote, RemoteError } from 'remote-data-rtk';
 import { pipe } from 'fp-ts/function';
 
 type User = { name: string; age: number };
 
-const remoteUser: RemoteRTK<RTKError, User> = remoteRTK.success({name: "John", age: 20})
+const remoteUser: RemoteData<RemoteError, User> = remote.success({name: "John", age: 20})
 
 const user: string = pipe(
     remoteUser,
-    remoteRTK.map(user => `${user.name} ${user.age}`),
-    remoteRTK.getOrElse(() => 'no user was fetched')
+    remote.map(user => `${user.name} ${user.age}`),
+    remote.getOrElse(() => 'no user was fetched')
 )
 ```
 
-### remoteRTK.toNullable
+### remote.toNullable
 ```typescript
-import { remoteRTK, RTKError } from 'remote-data-rtk';
+import { remote, RemoteError } from 'remote-data-rtk';
 
 type User = { name: string; age: number };
 
-const remoteUser: RemoteRTK<RTKError, User> = remoteRTK.success({name: "John", age: 20})
+const remoteUser: RemoteData<RemoteError, User> = remote.success({name: "John", age: 20})
 
-const nullableUser: User | null = remoteRTK.toNullable(remoteUser);
+const nullableUser: User | null = remote.toNullable(remoteUser);
 ```
 
-### remoteRTK.fromOption
+### remote.fromOption
 ```typescript
-import { remoteRTK, RTKError } from 'remote-data-rtk';
+import { remote, RemoteError } from 'remote-data-rtk';
 import { option } from 'fp-ts';
 import { Option } from 'fp-ts/Option';
 
@@ -190,95 +190,95 @@ type User = { name: string; age: number };
 
 const optionUser: Option<User> = option.some({name: 'John', age: 20})
 
-const remoteFromOptionUser: RemoteRTK<RTKError, User> = remoteRTK.fromOption(optionUser, () => new Error('option was none'))
+const remoteFromOptionUser: RemoteData<RemoteError, User> = remote.fromOption(optionUser, () => new Error('option was none'))
 ```
 
-### remoteRTK.toOption
+### remote.toOption
 ```typescript
-import { remoteRTK, RTKError } from 'remote-data-rtk';
+import { remote, RemoteError } from 'remote-data-rtk';
 import { Option } from 'fp-ts/Option';
 
 type User = { name: string; age: number };
 
-const remoteUser: RemoteRTK<RTKError, User> = remoteRTK.success({name: "John", age: 20})
+const remoteUser: RemoteData<RemoteError, User> = remote.success({name: "John", age: 20})
 
-const optionUser: Option<User> = remoteRTK.toOption(remoteUser);
+const optionUser: Option<User> = remote.toOption(remoteUser);
 ```
 
-### remoteRTK.fromEither
+### remote.fromEither
 ```typescript
-import { remoteRTK, RTKError } from 'remote-data-rtk';
+import { remote, RemoteError } from 'remote-data-rtk';
 import { Either, right } from 'fp-ts/lib/Either';
 
 type User = { name: string; age: number };
 
-const eitherUser: Either<RTKError, User> = right({name: 'John', age: 20})
+const eitherUser: Either<RemoteError, User> = right({name: 'John', age: 20})
 
-const remoteFromEitherUser: RemoteRTK<RTKError, User> = remoteRTK.fromEither(eitherUser)
+const remoteFromEitherUser: RemoteData<RemoteError, User> = remote.fromEither(eitherUser)
 ```
 
-### remoteRTK.toEither
+### remote.toEither
 ```typescript
-import { remoteRTK, RTKError } from 'remote-data-rtk';
+import { remote, RemoteError } from 'remote-data-rtk';
 import { Either } from 'fp-ts/lib/Either';
 import { pipe } from 'fp-ts/function';
 
 type User = { name: string; age: number };
 
-const remoteUser: RemoteRTK<RTKError, User> = remoteRTK.success({name: "John", age: 20})
+const remoteUser: RemoteData<RemoteError, User> = remote.success({name: "John", age: 20})
 
-const eitherUser: Either<RTKError, User> = pipe(
+const eitherUser: Either<RemoteError, User> = pipe(
     remoteUser,
-    remoteRTK.toEither(() => new Error('initial'), () => new Error('pending'))
+    remote.toEither(() => new Error('initial'), () => new Error('pending'))
 )
 ```
 
-### remoteRTK.chain
+### remote.chain
 ```typescript
-import { remoteRTK, RTKError } from 'remote-data-rtk';
+import { remote, RemoteError } from 'remote-data-rtk';
 import { pipe } from 'fp-ts/function';
 
 type User = { name: string; age: number };
 type UserInfo = string; // name + age
 
-const remoteUser: RemoteRTK<RTKError, User> = remoteRTK.success({name: "John", age: 20})
+const remoteUser: RemoteData<RemoteError, User> = remote.success({name: "John", age: 20})
 const chained = pipe(
     remoteUser,
-    remoteRTK.chain<RTKError, User, UserInfo>((user) => remoteRTK.success(`${user.name} ${user.age}`))
+    remote.chain<RemoteError, User, UserInfo>((user) => remote.success(`${user.name} ${user.age}`))
 )
 ```
 
-### remoteRTK.sequenceT
+### remote.sequenceT
 ```typescript
-import { remoteRTK, RTKError } from 'remote-data-rtk';
+import { remote, RemoteError } from 'remote-data-rtk';
 
 type User = { name: string; age: number };
 type City = { title: string };
 
-const remoteUser: RemoteRTK<RTKError, User> = remoteRTK.success({name: "John", age: 20});
-const remoteCity: RemoteRTK<RTKError, City> = remoteRTK.success({title: "New Orleans"});
+const remoteUser: RemoteData<RemoteError, User> = remote.success({name: "John", age: 20});
+const remoteCity: RemoteData<RemoteError, City> = remote.success({title: "New Orleans"});
 
-const remoteCombined: RemoteRTK<RTKError, [User, City]> = remoteRTK.sequenceT(remoteUser, remoteCity)
+const remoteCombined: RemoteData<RemoteError, [User, City]> = remote.sequenceT(remoteUser, remoteCity)
 ```
 
-### remoteRTK.sequenceS
+### remote.sequenceS
 ```typescript
-import { remoteRTK, RTKError } from 'remote-data-rtk';
+import { remote, RemoteError } from 'remote-data-rtk';
 
 type User = { name: string; age: number };
 type City = { title: string };
 
-const remoteUser: RemoteRTK<RTKError, User> = remoteRTK.success({name: "John", age: 20});
-const remoteCity: RemoteRTK<RTKError, City> = remoteRTK.success({title: "New Orleans"});
+const remoteUser: RemoteData<RemoteError, User> = remote.success({name: "John", age: 20});
+const remoteCity: RemoteData<RemoteError, City> = remote.success({title: "New Orleans"});
 
-const remoteCombined: RemoteRTK<RTKError, {user: User; city: City}> = remoteRTK.sequenceS({user: remoteUser, city: remoteCity})
+const remoteCombined: RemoteData<RemoteError, {user: User; city: City}> = remote.sequenceS({user: remoteUser, city: remoteCity})
 ```
 
-### RenderRemoteRTK
+### RenderRemote
 ```typescript
-export type RenderRemoteRTKProps<E, A> = {
+export type RenderRemoteProps<E, A> = {
     /** Remote data needs to be rendered */
-    data: RemoteRTK<E, A>;
+    data: RemoteData<E, A>;
     /** Render content function on failure state */
     failure?: (e: E) => ReactNode;
     /** Render content constant on initial state */

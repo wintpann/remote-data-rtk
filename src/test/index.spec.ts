@@ -1,4 +1,4 @@
-import { remoteRTK, RemoteRTK } from '../core';
+import { remote, RemoteData } from '../core';
 import { either, option } from 'fp-ts';
 import { QueryStatus } from '@reduxjs/toolkit/query';
 
@@ -11,18 +11,18 @@ const MOCK = {
 };
 
 const setup = () => {
-  const initial: RemoteRTK<number, number> = remoteRTK.initial;
-  const pending: RemoteRTK<number, number> = remoteRTK.pending();
-  const refetching: RemoteRTK<number, number> = remoteRTK.pending(MOCK.PENDING_VALUE);
-  const failure: RemoteRTK<number, number> = remoteRTK.failure(MOCK.FAILURE_VALUE);
-  const success: RemoteRTK<number, number> = remoteRTK.success(MOCK.SUCCESS_VALUE);
+  const initial: RemoteData<number, number> = remote.initial;
+  const pending: RemoteData<number, number> = remote.pending();
+  const refetching: RemoteData<number, number> = remote.pending(MOCK.PENDING_VALUE);
+  const failure: RemoteData<number, number> = remote.failure(MOCK.FAILURE_VALUE);
+  const success: RemoteData<number, number> = remote.success(MOCK.SUCCESS_VALUE);
 
   return { initial, pending, refetching, failure, success };
 };
 
 describe('remote-data-rtk', () => {
   it('should have correct initial object', () => {
-    expect(remoteRTK.initial).toStrictEqual({
+    expect(remote.initial).toStrictEqual({
       data: undefined,
       status: 'uninitialized',
       error: undefined,
@@ -30,19 +30,19 @@ describe('remote-data-rtk', () => {
   });
 
   it('should have correct pending factory', () => {
-    expect(remoteRTK.pending()).toStrictEqual({
+    expect(remote.pending()).toStrictEqual({
       status: QueryStatus.pending,
       data: undefined,
     });
 
-    expect(remoteRTK.pending(MOCK.PENDING_VALUE)).toStrictEqual({
+    expect(remote.pending(MOCK.PENDING_VALUE)).toStrictEqual({
       status: QueryStatus.pending,
       data: MOCK.PENDING_VALUE,
     });
   });
 
   it('should have correct failure factory', () => {
-    expect(remoteRTK.failure(MOCK.FAILURE_VALUE)).toStrictEqual({
+    expect(remote.failure(MOCK.FAILURE_VALUE)).toStrictEqual({
       status: QueryStatus.rejected,
       error: MOCK.FAILURE_VALUE,
       data: undefined,
@@ -50,7 +50,7 @@ describe('remote-data-rtk', () => {
   });
 
   it('should have correct success factory', () => {
-    expect(remoteRTK.success(MOCK.SUCCESS_VALUE)).toStrictEqual({
+    expect(remote.success(MOCK.SUCCESS_VALUE)).toStrictEqual({
       status: QueryStatus.fulfilled,
       error: undefined,
       data: MOCK.SUCCESS_VALUE,
@@ -60,42 +60,42 @@ describe('remote-data-rtk', () => {
   it('should have correct type guards', () => {
     const { initial, pending, failure, success } = setup();
 
-    expect(remoteRTK.isInitial(initial)).toBe(true);
-    expect(remoteRTK.isPending(pending)).toBe(true);
-    expect(remoteRTK.isFailure(failure)).toBe(true);
-    expect(remoteRTK.isSuccess(success)).toBe(true);
+    expect(remote.isInitial(initial)).toBe(true);
+    expect(remote.isPending(pending)).toBe(true);
+    expect(remote.isFailure(failure)).toBe(true);
+    expect(remote.isSuccess(success)).toBe(true);
 
-    expect(remoteRTK.isPending(initial)).toBe(false);
-    expect(remoteRTK.isFailure(initial)).toBe(false);
-    expect(remoteRTK.isSuccess(initial)).toBe(false);
+    expect(remote.isPending(initial)).toBe(false);
+    expect(remote.isFailure(initial)).toBe(false);
+    expect(remote.isSuccess(initial)).toBe(false);
 
-    expect(remoteRTK.isInitial(pending)).toBe(false);
-    expect(remoteRTK.isFailure(pending)).toBe(false);
-    expect(remoteRTK.isSuccess(pending)).toBe(false);
+    expect(remote.isInitial(pending)).toBe(false);
+    expect(remote.isFailure(pending)).toBe(false);
+    expect(remote.isSuccess(pending)).toBe(false);
 
-    expect(remoteRTK.isInitial(failure)).toBe(false);
-    expect(remoteRTK.isPending(failure)).toBe(false);
-    expect(remoteRTK.isSuccess(failure)).toBe(false);
+    expect(remote.isInitial(failure)).toBe(false);
+    expect(remote.isPending(failure)).toBe(false);
+    expect(remote.isSuccess(failure)).toBe(false);
 
-    expect(remoteRTK.isInitial(success)).toBe(false);
-    expect(remoteRTK.isPending(success)).toBe(false);
-    expect(remoteRTK.isFailure(success)).toBe(false);
+    expect(remote.isInitial(success)).toBe(false);
+    expect(remote.isPending(success)).toBe(false);
+    expect(remote.isFailure(success)).toBe(false);
   });
 
   it('should run map correctly', () => {
     const { initial, pending, refetching, failure, success } = setup();
-    const map = remoteRTK.map((a: number) => a * 2);
+    const map = remote.map((a: number) => a * 2);
 
-    expect(map(initial)).toStrictEqual(remoteRTK.initial);
-    expect(map(pending)).toStrictEqual(remoteRTK.pending());
-    expect(map(failure)).toStrictEqual(remoteRTK.failure(MOCK.FAILURE_VALUE));
-    expect(map(success)).toStrictEqual(remoteRTK.success(MOCK.SUCCESS_VALUE * 2));
-    expect(map(refetching)).toStrictEqual(remoteRTK.pending(MOCK.PENDING_VALUE * 2));
+    expect(map(initial)).toStrictEqual(remote.initial);
+    expect(map(pending)).toStrictEqual(remote.pending());
+    expect(map(failure)).toStrictEqual(remote.failure(MOCK.FAILURE_VALUE));
+    expect(map(success)).toStrictEqual(remote.success(MOCK.SUCCESS_VALUE * 2));
+    expect(map(refetching)).toStrictEqual(remote.pending(MOCK.PENDING_VALUE * 2));
   });
 
   it('should run fold correctly', () => {
     const { initial, pending, refetching, failure, success } = setup();
-    const fold = remoteRTK.fold(
+    const fold = remote.fold(
       () => 'initial',
       option.fold(
         () => 'pending_with_no_data',
@@ -114,7 +114,7 @@ describe('remote-data-rtk', () => {
 
   it('should run getOrElse correctly', () => {
     const { initial, pending, refetching, failure, success } = setup();
-    const orElse = remoteRTK.getOrElse(() => MOCK.ELSE_VALUE);
+    const orElse = remote.getOrElse(() => MOCK.ELSE_VALUE);
 
     expect(orElse(initial)).toBe(MOCK.ELSE_VALUE);
     expect(orElse(pending)).toBe(MOCK.ELSE_VALUE);
@@ -125,46 +125,46 @@ describe('remote-data-rtk', () => {
 
   it('should run toNullable correctly', () => {
     const { initial, pending, refetching, failure, success } = setup();
-    expect(remoteRTK.toNullable(initial)).toBe(null);
-    expect(remoteRTK.toNullable(pending)).toBe(null);
-    expect(remoteRTK.toNullable(refetching)).toBe(MOCK.PENDING_VALUE);
-    expect(remoteRTK.toNullable(failure)).toBe(null);
-    expect(remoteRTK.toNullable(success)).toBe(MOCK.SUCCESS_VALUE);
+    expect(remote.toNullable(initial)).toBe(null);
+    expect(remote.toNullable(pending)).toBe(null);
+    expect(remote.toNullable(refetching)).toBe(MOCK.PENDING_VALUE);
+    expect(remote.toNullable(failure)).toBe(null);
+    expect(remote.toNullable(success)).toBe(MOCK.SUCCESS_VALUE);
   });
 
   it('should run fromOption correctly', () => {
     const onNone = () => MOCK.FAILURE_VALUE;
 
-    expect(remoteRTK.fromOption(option.some(MOCK.SUCCESS_VALUE), onNone)).toStrictEqual(
-      remoteRTK.success(MOCK.SUCCESS_VALUE),
+    expect(remote.fromOption(option.some(MOCK.SUCCESS_VALUE), onNone)).toStrictEqual(
+      remote.success(MOCK.SUCCESS_VALUE),
     );
-    expect(remoteRTK.fromOption(option.none, onNone)).toStrictEqual(
-      remoteRTK.failure(MOCK.FAILURE_VALUE),
+    expect(remote.fromOption(option.none, onNone)).toStrictEqual(
+      remote.failure(MOCK.FAILURE_VALUE),
     );
   });
 
   it('should run toOption correctly', () => {
     const { initial, pending, refetching, failure, success } = setup();
-    expect(remoteRTK.toOption(initial)).toStrictEqual(option.none);
-    expect(remoteRTK.toOption(pending)).toStrictEqual(option.none);
-    expect(remoteRTK.toOption(refetching)).toStrictEqual(option.some(MOCK.PENDING_VALUE));
-    expect(remoteRTK.toOption(failure)).toStrictEqual(option.none);
-    expect(remoteRTK.toOption(success)).toStrictEqual(option.some(MOCK.SUCCESS_VALUE));
+    expect(remote.toOption(initial)).toStrictEqual(option.none);
+    expect(remote.toOption(pending)).toStrictEqual(option.none);
+    expect(remote.toOption(refetching)).toStrictEqual(option.some(MOCK.PENDING_VALUE));
+    expect(remote.toOption(failure)).toStrictEqual(option.none);
+    expect(remote.toOption(success)).toStrictEqual(option.some(MOCK.SUCCESS_VALUE));
   });
 
   it('should run fromEither correctly', () => {
-    expect(remoteRTK.fromEither(either.right(MOCK.SUCCESS_VALUE))).toStrictEqual(
-      remoteRTK.success(MOCK.SUCCESS_VALUE),
+    expect(remote.fromEither(either.right(MOCK.SUCCESS_VALUE))).toStrictEqual(
+      remote.success(MOCK.SUCCESS_VALUE),
     );
-    expect(remoteRTK.fromEither(either.left(MOCK.FAILURE_VALUE))).toStrictEqual(
-      remoteRTK.failure(MOCK.FAILURE_VALUE),
+    expect(remote.fromEither(either.left(MOCK.FAILURE_VALUE))).toStrictEqual(
+      remote.failure(MOCK.FAILURE_VALUE),
     );
   });
 
   it('should run toEither correctly', () => {
     const { initial, pending, refetching, failure, success } = setup();
 
-    const toEither = remoteRTK.toEither(
+    const toEither = remote.toEither(
       () => MOCK.INITIAL_VALUE,
       () => MOCK.PENDING_VALUE,
     );
@@ -179,112 +179,112 @@ describe('remote-data-rtk', () => {
   it('should run chain correctly', () => {
     const { initial, pending, refetching, failure, success } = setup();
 
-    const chain = remoteRTK.chain<number, number, number>((a: number) => remoteRTK.success(a * 2));
+    const chain = remote.chain<number, number, number>((a: number) => remote.success(a * 2));
 
-    expect(chain(initial)).toStrictEqual(remoteRTK.initial);
-    expect(chain(pending)).toStrictEqual(remoteRTK.pending());
-    expect(chain(refetching)).toStrictEqual(remoteRTK.success(MOCK.PENDING_VALUE * 2));
-    expect(chain(failure)).toStrictEqual(remoteRTK.failure(MOCK.FAILURE_VALUE));
-    expect(chain(success)).toStrictEqual(remoteRTK.success(MOCK.SUCCESS_VALUE * 2));
+    expect(chain(initial)).toStrictEqual(remote.initial);
+    expect(chain(pending)).toStrictEqual(remote.pending());
+    expect(chain(refetching)).toStrictEqual(remote.success(MOCK.PENDING_VALUE * 2));
+    expect(chain(failure)).toStrictEqual(remote.failure(MOCK.FAILURE_VALUE));
+    expect(chain(success)).toStrictEqual(remote.success(MOCK.SUCCESS_VALUE * 2));
   });
 
   it('should run sequenceT correctly', () => {
     const { initial, pending, refetching, failure, success } = setup();
 
-    const sequenceSuccess = remoteRTK.sequenceT(success, success);
+    const sequenceSuccess = remote.sequenceT(success, success);
     expect(sequenceSuccess).toStrictEqual(
-      remoteRTK.success([MOCK.SUCCESS_VALUE, MOCK.SUCCESS_VALUE]),
+      remote.success([MOCK.SUCCESS_VALUE, MOCK.SUCCESS_VALUE]),
     );
 
-    const sequenceSuccessPendingWithData = remoteRTK.sequenceT(success, refetching);
+    const sequenceSuccessPendingWithData = remote.sequenceT(success, refetching);
     expect(sequenceSuccessPendingWithData).toStrictEqual(
-      remoteRTK.pending([MOCK.SUCCESS_VALUE, MOCK.PENDING_VALUE]),
+      remote.pending([MOCK.SUCCESS_VALUE, MOCK.PENDING_VALUE]),
     );
 
-    const sequenceSuccessPending = remoteRTK.sequenceT(success, pending);
-    expect(sequenceSuccessPending).toStrictEqual(remoteRTK.pending());
+    const sequenceSuccessPending = remote.sequenceT(success, pending);
+    expect(sequenceSuccessPending).toStrictEqual(remote.pending());
 
-    const sequenceSuccessInitial = remoteRTK.sequenceT(success, initial);
-    expect(sequenceSuccessInitial).toStrictEqual(remoteRTK.initial);
+    const sequenceSuccessInitial = remote.sequenceT(success, initial);
+    expect(sequenceSuccessInitial).toStrictEqual(remote.initial);
 
-    const sequenceSuccessFailure = remoteRTK.sequenceT(success, failure);
-    expect(sequenceSuccessFailure).toStrictEqual(remoteRTK.failure(MOCK.FAILURE_VALUE));
+    const sequenceSuccessFailure = remote.sequenceT(success, failure);
+    expect(sequenceSuccessFailure).toStrictEqual(remote.failure(MOCK.FAILURE_VALUE));
 
-    const sequenceFailurePending = remoteRTK.sequenceT(failure, pending);
-    expect(sequenceFailurePending).toStrictEqual(remoteRTK.failure(MOCK.FAILURE_VALUE));
+    const sequenceFailurePending = remote.sequenceT(failure, pending);
+    expect(sequenceFailurePending).toStrictEqual(remote.failure(MOCK.FAILURE_VALUE));
 
-    const sequenceFailurePendingWithData = remoteRTK.sequenceT(failure, refetching);
-    expect(sequenceFailurePendingWithData).toStrictEqual(remoteRTK.failure(MOCK.FAILURE_VALUE));
+    const sequenceFailurePendingWithData = remote.sequenceT(failure, refetching);
+    expect(sequenceFailurePendingWithData).toStrictEqual(remote.failure(MOCK.FAILURE_VALUE));
 
-    const sequenceFailureInitial = remoteRTK.sequenceT(failure, initial);
-    expect(sequenceFailureInitial).toStrictEqual(remoteRTK.failure(MOCK.FAILURE_VALUE));
+    const sequenceFailureInitial = remote.sequenceT(failure, initial);
+    expect(sequenceFailureInitial).toStrictEqual(remote.failure(MOCK.FAILURE_VALUE));
 
-    const sequenceFailureFailure = remoteRTK.sequenceT(failure, failure);
-    expect(sequenceFailureFailure).toStrictEqual(remoteRTK.failure(MOCK.FAILURE_VALUE));
+    const sequenceFailureFailure = remote.sequenceT(failure, failure);
+    expect(sequenceFailureFailure).toStrictEqual(remote.failure(MOCK.FAILURE_VALUE));
 
-    const sequencePendingInitial = remoteRTK.sequenceT(pending, initial);
-    expect(sequencePendingInitial).toStrictEqual(remoteRTK.pending());
+    const sequencePendingInitial = remote.sequenceT(pending, initial);
+    expect(sequencePendingInitial).toStrictEqual(remote.pending());
 
-    const sequencePendingWithDataInitial = remoteRTK.sequenceT(refetching, initial);
-    expect(sequencePendingWithDataInitial).toStrictEqual(remoteRTK.pending());
+    const sequencePendingWithDataInitial = remote.sequenceT(refetching, initial);
+    expect(sequencePendingWithDataInitial).toStrictEqual(remote.pending());
 
-    const sequenceInitialInitial = remoteRTK.sequenceT(initial, initial);
-    expect(sequenceInitialInitial).toStrictEqual(remoteRTK.initial);
+    const sequenceInitialInitial = remote.sequenceT(initial, initial);
+    expect(sequenceInitialInitial).toStrictEqual(remote.initial);
   });
 
   it('should run sequenceS correctly', () => {
     const { initial, pending, refetching, failure, success } = setup();
 
-    const sequenceSuccess = remoteRTK.sequenceS({ one: success, two: success });
+    const sequenceSuccess = remote.sequenceS({ one: success, two: success });
     expect(sequenceSuccess).toStrictEqual(
-      remoteRTK.success({ one: MOCK.SUCCESS_VALUE, two: MOCK.SUCCESS_VALUE }),
+      remote.success({ one: MOCK.SUCCESS_VALUE, two: MOCK.SUCCESS_VALUE }),
     );
 
-    const sequenceSuccessPendingWithData = remoteRTK.sequenceS({
+    const sequenceSuccessPendingWithData = remote.sequenceS({
       one: success,
       two: refetching,
     });
     expect(sequenceSuccessPendingWithData).toStrictEqual(
-      remoteRTK.pending({
+      remote.pending({
         one: MOCK.SUCCESS_VALUE,
         two: MOCK.PENDING_VALUE,
       }),
     );
 
-    const sequenceSuccessPending = remoteRTK.sequenceS({ one: success, two: pending });
-    expect(sequenceSuccessPending).toStrictEqual(remoteRTK.pending());
+    const sequenceSuccessPending = remote.sequenceS({ one: success, two: pending });
+    expect(sequenceSuccessPending).toStrictEqual(remote.pending());
 
-    const sequenceSuccessInitial = remoteRTK.sequenceS({ one: success, two: initial });
-    expect(sequenceSuccessInitial).toStrictEqual(remoteRTK.initial);
+    const sequenceSuccessInitial = remote.sequenceS({ one: success, two: initial });
+    expect(sequenceSuccessInitial).toStrictEqual(remote.initial);
 
-    const sequenceSuccessFailure = remoteRTK.sequenceS({ one: success, two: failure });
-    expect(sequenceSuccessFailure).toStrictEqual(remoteRTK.failure(MOCK.FAILURE_VALUE));
+    const sequenceSuccessFailure = remote.sequenceS({ one: success, two: failure });
+    expect(sequenceSuccessFailure).toStrictEqual(remote.failure(MOCK.FAILURE_VALUE));
 
-    const sequenceFailurePending = remoteRTK.sequenceS({ one: failure, two: pending });
-    expect(sequenceFailurePending).toStrictEqual(remoteRTK.failure(MOCK.FAILURE_VALUE));
+    const sequenceFailurePending = remote.sequenceS({ one: failure, two: pending });
+    expect(sequenceFailurePending).toStrictEqual(remote.failure(MOCK.FAILURE_VALUE));
 
-    const sequenceFailurePendingWithData = remoteRTK.sequenceS({
+    const sequenceFailurePendingWithData = remote.sequenceS({
       one: failure,
       two: refetching,
     });
-    expect(sequenceFailurePendingWithData).toStrictEqual(remoteRTK.failure(MOCK.FAILURE_VALUE));
+    expect(sequenceFailurePendingWithData).toStrictEqual(remote.failure(MOCK.FAILURE_VALUE));
 
-    const sequenceFailureInitial = remoteRTK.sequenceS({ one: failure, two: initial });
-    expect(sequenceFailureInitial).toStrictEqual(remoteRTK.failure(MOCK.FAILURE_VALUE));
+    const sequenceFailureInitial = remote.sequenceS({ one: failure, two: initial });
+    expect(sequenceFailureInitial).toStrictEqual(remote.failure(MOCK.FAILURE_VALUE));
 
-    const sequenceFailureFailure = remoteRTK.sequenceS({ one: failure, two: failure });
-    expect(sequenceFailureFailure).toStrictEqual(remoteRTK.failure(MOCK.FAILURE_VALUE));
+    const sequenceFailureFailure = remote.sequenceS({ one: failure, two: failure });
+    expect(sequenceFailureFailure).toStrictEqual(remote.failure(MOCK.FAILURE_VALUE));
 
-    const sequencePendingInitial = remoteRTK.sequenceS({ one: pending, two: initial });
-    expect(sequencePendingInitial).toStrictEqual(remoteRTK.pending());
+    const sequencePendingInitial = remote.sequenceS({ one: pending, two: initial });
+    expect(sequencePendingInitial).toStrictEqual(remote.pending());
 
-    const sequencePendingWithDataInitial = remoteRTK.sequenceS({
+    const sequencePendingWithDataInitial = remote.sequenceS({
       one: refetching,
       two: initial,
     });
-    expect(sequencePendingWithDataInitial).toStrictEqual(remoteRTK.pending());
+    expect(sequencePendingWithDataInitial).toStrictEqual(remote.pending());
 
-    const sequenceInitialInitial = remoteRTK.sequenceS({ one: initial, two: initial });
-    expect(sequenceInitialInitial).toStrictEqual(remoteRTK.initial);
+    const sequenceInitialInitial = remote.sequenceS({ one: initial, two: initial });
+    expect(sequenceInitialInitial).toStrictEqual(remote.initial);
   });
 });
