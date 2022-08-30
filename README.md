@@ -308,3 +308,11 @@ export type RenderRemoteProps<E, A> = {
 
 ### 0.0.2 `17.08.2022`
 * Removed useless dependency
+
+### 1.0.0 `30.08.2022`
+* Removed RTK suffix
+* Removed useless generics (i.e. getOrElse<E, A> -> getOrElse<A>)
+* Renamed sequenceS -> combine
+* Renamed sequenceT -> sequence
+* Fixed fp-ts peer import
+* Add mapLeft
