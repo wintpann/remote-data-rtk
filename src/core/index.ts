@@ -102,7 +102,7 @@ const success = <A>(value: A): RemoteData<never, A> => ({
  * remote.isInitial(remote.initial) // true
  * remote.isInitial(remote.pending()) // false
  */
-const isInitial = <E, A>(data: RemoteData<E, A>): data is RemoteInitial =>
+const isInitial = (data: RemoteData<unknown, unknown>): data is RemoteInitial =>
   data.status === QueryStatus.uninitialized;
 
 /**
@@ -113,7 +113,7 @@ const isInitial = <E, A>(data: RemoteData<E, A>): data is RemoteInitial =>
  * remote.isPending(remote.pending()) // true
  * remote.isPending(remote.failure(new Error())) // false
  */
-const isPending = <E, A>(data: RemoteData<E, A>): data is RemotePending<A> =>
+const isPending = <A>(data: RemoteData<unknown, A>): data is RemotePending<A> =>
   data.status === QueryStatus.pending;
 
 /**
@@ -124,7 +124,7 @@ const isPending = <E, A>(data: RemoteData<E, A>): data is RemotePending<A> =>
  * remote.isFailure(remote.failure(new Error())) // true
  * remote.isFailure(remote.success([])) // false
  */
-const isFailure = <E, A>(data: RemoteData<E, A>): data is RemoteFailure<E> =>
+const isFailure = <E>(data: RemoteData<E, unknown>): data is RemoteFailure<E> =>
   data.status === QueryStatus.rejected;
 
 /**
@@ -135,7 +135,7 @@ const isFailure = <E, A>(data: RemoteData<E, A>): data is RemoteFailure<E> =>
  * remote.isSuccess(remote.success([])) // true
  * remote.isSuccess(remote.pending([])) // false
  */
-const isSuccess = <E, A>(data: RemoteData<E, A>): data is RemoteSuccess<A> =>
+const isSuccess = <A>(data: RemoteData<unknown, A>): data is RemoteSuccess<A> =>
   data.status === QueryStatus.fulfilled;
 
 /**
@@ -151,11 +151,12 @@ const isSuccess = <E, A>(data: RemoteData<E, A>): data is RemoteSuccess<A> =>
  */
 const map =
   <A, E, B>(f: (a: A) => B) =>
-  (data: RemoteData<E, A>): RemoteData<E, B> =>
-    ({
-      ...data,
-      data: data.data != null ? f(data.data) : data.data,
-    } as RemoteData<E, B>);
+  (data: RemoteData<E, A>): RemoteData<E, B> => {
+    if (isSuccess(data)) return remote.success(f(data.data));
+    // TODO think about what if A is actually undefined | null
+    if (isPending(data) && data.data != null) return remote.pending(f(data.data));
+    return data as RemoteData<E, B>;
+  };
 
 /**
  * Unwraps RemoteData<E, A>
@@ -208,8 +209,8 @@ const fold =
  * )
  */
 const getOrElse =
-  <A, E>(onElse: Lazy<A>) =>
-  (data: RemoteData<E, A>) => {
+  <A>(onElse: Lazy<A>) =>
+  (data: RemoteData<unknown, A>) => {
     if (isSuccess(data)) return data.data;
     if (isPending(data) && data.data != null) return data.data;
     return onElse();
@@ -225,7 +226,7 @@ const getOrElse =
  *
  * const nullableUser: User | null = remote.toNullable(remoteUser);
  */
-const toNullable = <E, A>(data: RemoteData<E, A>): A | null => {
+const toNullable = <A>(data: RemoteData<unknown, A>): A | null => {
   if (isSuccess(data)) return data.data;
   if (isPending(data) && data.data != null) return data.data;
   return null;
@@ -327,12 +328,15 @@ const chain =
     return data as RemoteData<E, B>;
   };
 
-interface SequenceT {
+interface Sequence {
   <E, A>(a: RemoteData<E, A>): RemoteData<E, [A]>;
 
   <E, A, B>(a: RemoteData<E, A>, b: RemoteData<E, B>): RemoteData<E, [A, B]>;
 
-  <E, A, B, C>(a: RemoteData<E, A>, b: RemoteData<E, B>, c: RemoteData<E, C>): RemoteData<E, [A, B, C]>;
+  <E, A, B, C>(a: RemoteData<E, A>, b: RemoteData<E, B>, c: RemoteData<E, C>): RemoteData<
+    E,
+    [A, B, C]
+  >;
 
   <E, A, B, C, D>(
     a: RemoteData<E, A>,
@@ -369,9 +373,9 @@ interface SequenceT {
  * const remoteUser: RemoteData<RemoteError, User> = remote.success({name: "John", age: 20});
  * const remoteCity: RemoteData<RemoteError, City> = remote.success({title: "New Orleans"});
  *
- * const remoteCombined: RemoteData<RemoteError, [User, City]> = remote.sequenceT(remoteUser, remoteCity)
+ * const remoteCombined: RemoteData<RemoteError, [User, City]> = remote.sequence(remoteUser, remoteCity)
  */
-const sequenceT: SequenceT = ((...list: RemoteData<any, any>[]) => {
+const sequence: Sequence = ((...list: RemoteData<any, any>[]) => {
   const successCount = list.filter(isSuccess).length;
   if (successCount === list.length) return success(list.map(({ data }) => data));
 
@@ -387,9 +391,9 @@ const sequenceT: SequenceT = ((...list: RemoteData<any, any>[]) => {
   if (pendingCount > 0) return pending();
 
   return initial;
-}) as SequenceT;
+}) as Sequence;
 
-interface SequenceS {
+interface Combine {
   <E, S extends Record<string, RemoteData<any, any>>>(struct: S): RemoteData<
     E,
     {
@@ -408,14 +412,14 @@ interface SequenceS {
  * const remoteUser: RemoteData<RemoteError, User> = remote.success({name: "John", age: 20});
  * const remoteCity: RemoteData<RemoteError, City> = remote.success({title: "New Orleans"});
  *
- * const remoteCombined: RemoteData<RemoteError, {user: User; city: City}> = remote.sequenceS({user: remoteUser, city: remoteCity})
+ * const remoteCombined: RemoteData<RemoteError, {user: User; city: City}> = remote.combine({user: remoteUser, city: remoteCity})
  */
-const sequenceS = (<S extends Record<string, RemoteData<any, any>>>(struct: S) => {
+const combine = (<S extends Record<string, RemoteData<any, any>>>(struct: S) => {
   const entries = Object.entries(struct);
   const list = entries.map(([, el]) => el);
 
   // @ts-ignore
-  const tupleSequence: RemoteData<any, any> = sequenceT(...list);
+  const tupleSequence: RemoteData<any, any> = sequence(...list);
 
   if (isSuccess(tupleSequence))
     return success(entries.reduce((acc, [key, el]) => ({ ...acc, [key]: el.data }), {}));
@@ -436,7 +440,7 @@ const sequenceS = (<S extends Record<string, RemoteData<any, any>>>(struct: S) =
   if (isFailure(tupleSequence)) return tupleSequence;
 
   return initial;
-}) as SequenceS;
+}) as Combine;
 
 export const remote = {
   initial,
@@ -456,8 +460,8 @@ export const remote = {
   fromEither,
   toEither,
   chain,
-  sequenceT,
-  sequenceS,
+  sequence,
+  combine,
 };
 
 export type RenderRemoteProps<E, A> = {

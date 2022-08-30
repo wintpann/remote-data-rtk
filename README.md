@@ -20,7 +20,7 @@ export const WithRemoteRTKDemoCombined2Queries: FC = () => {
   const todos: RemoteData<RemoteError, APITodo[]> = api.useGetTodosQuery();
 
   const data = pipe(
-    remote.sequenceS({ users, todos }),
+    remote.combine({ users, todos }),
     remote.map(({ users, todos }) => ({
       users: users.map((user) => ({
         ...user,
@@ -248,7 +248,7 @@ const chained = pipe(
 )
 ```
 
-### remote.sequenceT
+### remote.sequence
 ```typescript
 import { remote, RemoteError } from 'remote-data-rtk';
 
@@ -258,10 +258,10 @@ type City = { title: string };
 const remoteUser: RemoteData<RemoteError, User> = remote.success({name: "John", age: 20});
 const remoteCity: RemoteData<RemoteError, City> = remote.success({title: "New Orleans"});
 
-const remoteCombined: RemoteData<RemoteError, [User, City]> = remote.sequenceT(remoteUser, remoteCity)
+const remoteCombined: RemoteData<RemoteError, [User, City]> = remote.sequence(remoteUser, remoteCity)
 ```
 
-### remote.sequenceS
+### remote.combine
 ```typescript
 import { remote, RemoteError } from 'remote-data-rtk';
 
@@ -271,7 +271,7 @@ type City = { title: string };
 const remoteUser: RemoteData<RemoteError, User> = remote.success({name: "John", age: 20});
 const remoteCity: RemoteData<RemoteError, City> = remote.success({title: "New Orleans"});
 
-const remoteCombined: RemoteData<RemoteError, {user: User; city: City}> = remote.sequenceS({user: remoteUser, city: remoteCity})
+const remoteCombined: RemoteData<RemoteError, {user: User; city: City}> = remote.combine({user: remoteUser, city: remoteCity})
 ```
 
 ### RenderRemote

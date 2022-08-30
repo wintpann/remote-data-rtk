@@ -142,9 +142,7 @@ export const WithRemoteRTKDemoSimple: FC = () => {
 
   const usersList = pipe(
     users,
-    remote.map((users) =>
-      users.map((user) => ({ ...user, fullName: user.name + user.username })),
-    ),
+    remote.map((users) => users.map((user) => ({ ...user, fullName: user.name + user.username }))),
   );
 
   return (
@@ -167,7 +165,7 @@ export const WithRemoteRTKDemoCombined2Queries: FC = () => {
   const todos: RemoteData<RemoteError, APITodo[]> = api.useGetTodosQuery();
 
   const data = pipe(
-    remote.sequenceS({ users, todos }),
+    remote.combine({ users, todos }),
     remote.map(({ users, todos }) => ({
       users: users.map((user) => ({
         ...user,
