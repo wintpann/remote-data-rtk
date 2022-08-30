@@ -131,6 +131,15 @@ const remoteUser: RemoteData<RemoteError, User> = remote.success({name: "John", 
 const remoteUserName: RemoteData<RemoteError, UserInfo> = pipe(remoteUser, remote.map(user => `${user.name} ${user.age}`))
 ```
 
+### remote.mapLeft
+```typescript
+import { remote, RemoteError } from 'remote-data-rtk';
+import { pipe } from 'fp-ts/function';
+
+const remoteUser: RemoteData<RemoteError, string> = remote.failure(new Error('could not fetch'))
+const remoteUserLeftMapped: RemoteData<{custom: string}, string> = pipe(remoteUser, remote.mapLeft(error => ({custom: String(error)})))
+```
+
 ### remote.fold
 ```typescript
 import { remote, RemoteError } from 'remote-data-rtk';
