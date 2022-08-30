@@ -49,7 +49,9 @@
   ],
   "peerDependencies": {
     "@reduxjs/toolkit": ">=1.0.3",
-    "fp-ts": ">=2.0.0",
+    "fp-ts/Option": ">=2.0.0",
+    "fp-ts/Either": ">=2.0.0",
+    "fp-ts/function": ">=2.0.0",
     "react": ">=16.8.0"
   },
   "devDependencies": {
